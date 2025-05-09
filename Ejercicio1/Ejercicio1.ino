@@ -4,9 +4,6 @@
 // Cola para compartir personas entre productor y consumidor
 QueueHandle_t myQueue;
 
-// Variable global para almacenar la persona recibida
-Person persona;
-
 // Configuración inicial
 void setup() {
   
@@ -66,6 +63,9 @@ void consumidor(void * pvParameters) {
 
     // Esperar 1 segundo antes de consumir
     delay(1000);
+
+    // Variable global para almacenar la persona recibida
+    Person persona;
 
     // Recibir una persona de la cola
     if (xQueueReceive(myQueue, &persona, portMAX_DELAY) == pdTRUE) {

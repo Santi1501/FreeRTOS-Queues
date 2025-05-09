@@ -5,9 +5,9 @@
 QueueHandle_t myQueue;
 
 // Pines para los LEDs
-int LED_RED_PIN = 23;
-int LED_GREEN_PIN = 22;
-int LED_BLUE_PIN = 21;
+#define LED_RED_PIN 23
+#define LED_GREEN_PIN 22
+#define LED_YELLOW_PIN 21
 
 // Configuración inicial
 void setup() {
@@ -15,7 +15,7 @@ void setup() {
   // Configuración de pines como salidas
   pinMode(LED_RED_PIN, OUTPUT);
   pinMode(LED_GREEN_PIN, OUTPUT);
-  pinMode(LED_BLUE_PIN, OUTPUT);
+  pinMode(LED_YELLOW_PIN, OUTPUT);
 
   // Crear una cola con capacidad para 5 comandos LED
   myQueue = xQueueCreate(5, sizeof(LedCommand));
@@ -46,6 +46,33 @@ void setup() {
   );
 }
 
+// Función que se usa en la tarea Consumidor para encender los LEDS, de acuerdo al comando
+void setRGB(bool R, bool G, bool B) {
+
+  // LED rojo
+  if(R){
+
+    digitalWrite(LED_RED_PIN, HIGH);
+  }
+
+  // LED amarillo
+  if(G){
+
+    digitalWrite(LED_YELLOW_PIN, HIGH);
+  }
+
+  // LED verde
+  if(B){
+
+    digitalWrite(LED_GREEN_PIN, HIGH);
+  }
+
+  delay(1000);
+  digitalWrite(LED_RED_PIN, LOW);
+  digitalWrite(LED_YELLOW_PIN, LOW);
+  digitalWrite(LED_GREEN_PIN, LOW);
+}
+
 // Tarea Productor (Core 0)
 void productor(void * pvParameters) {
 
@@ -67,9 +94,9 @@ void productor(void * pvParameters) {
       xQueueSendToBack(myQueue, &cmd, portMAX_DELAY); // normal
     }
 
-    // Informar por Monitor Serial
+    /* Informar por Monitor Serial
     Serial.print("Producido: ");
-    Serial.println(cmd);
+    Serial.println(cmd);*/
   }
 }
 
@@ -88,45 +115,23 @@ void consumidor(void * pvParameters) {
       Serial.print("Ejecutando: ");
       Serial.println(cmd);
 
-      // LED rojo
       if(cmd == LED_RED){
 
-        digitalWrite(LED_RED_PIN, HIGH);
-        delay(1000);
-        digitalWrite(LED_RED_PIN, LOW);
+        setRGB(1, 0, 0);
       }
-
-      // LED azul
-      if(cmd == LED_BLUE){
-
-        digitalWrite(LED_BLUE_PIN, HIGH);
-        delay(1000);
-        digitalWrite(LED_BLUE_PIN, LOW);
-      }
-
-      // LED verde
       if(cmd == LED_GREEN){
 
-        digitalWrite(LED_GREEN_PIN, HIGH);
-        delay(1000);
-        digitalWrite(LED_GREEN_PIN, LOW);
+        setRGB(0, 1, 0);
+      }
+      if(cmd == LED_YELLOW){
+
+        setRGB(0, 0, 1);
       }
 
-      // Parpadear los 3 LEDs durante 1 segundo (5 ciclos de 100ms on/off)
+      // Enciende todos los LEDs
       if(cmd == LED_BLINK){
 
-        for (int i = 0; i < 5; i++) {
-        
-          digitalWrite(LED_RED_PIN, HIGH);
-          digitalWrite(LED_GREEN_PIN, HIGH);
-          digitalWrite(LED_BLUE_PIN, HIGH);
-          delay(100);
-
-          digitalWrite(LED_RED_PIN, LOW);
-          digitalWrite(LED_GREEN_PIN, LOW);
-          digitalWrite(LED_BLUE_PIN, LOW);
-          delay(100);
-        }
+        setRGB(1, 1, 1);
       }
     }
   }
